@@ -1,0 +1,27 @@
+name: Verify candidate build
+on:
+  push:
+    branches: [forena-v2-review]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Validate original catalog
+        run: |
+          test -f tests/catalog.test.mjs || { echo "Candidate sources not uploaded"; exit 1; }
+          node --test tests/*.test.mjs
+      - name: Build without publishing
+        run: npm run build
