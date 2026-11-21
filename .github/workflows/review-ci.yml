@@ -1,14 +1,12 @@
-name: Verify candidate build
+name: Review build and verify
 on:
   push:
     branches: [forena-v2-review]
   pull_request:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -17,11 +15,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install
+      - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Validate original catalog
-        run: |
-          test -f tests/catalog.test.mjs || { echo "Candidate sources not uploaded"; exit 1; }
-          node --test tests/*.test.mjs
-      - name: Build without publishing
+      - name: Verify original product data and category mapping
+        run: node --test tests/*.test.mjs
+      - name: Verify React and Vite build (does not deploy)
         run: npm run build
