@@ -1,24 +1,35 @@
 # FORĒNA A/S 웹앱 v2 검토 브랜치
 
-이 브랜치는 기존 운영용 `main`을 보호하기 위해 생성한 **검토용 브랜치**입니다.
+> **배포 전 상태 / 운영용 아님**. `main`은 변경하지 않았으며 현재 이 브랜치를 병합하거나 공개 배포하지 마세요.
 
-## 현 상태
-- **개선본 소스 업로드 전**: 브랜치 생성 및 배포 준비 상태입니다.
-- ChatGPT에서 제공한 `forena-as-app-v2.2-github.zip`을 로컬에서 압축 해제한 다음, ZIP **내부 파일과 폴더 전체**를 이 브랜치에 업로드해야 개선본이 됩니다.
-- 이 브랜치를 `main`에 바로 병합하거나 Pages를 공개하지 마세요.
+## 검증된 상태 (2026-11-21)
 
-## 원본 보존 조건
-- 업로드 ZIP 기준 41개 제품의 원본 필드는 그대로 유지합니다.
-- 66형 40개 · 68형 40개 · 84형 41개.
-- 평형 표시가 없는 제품은 세 평형 전체에 표시합니다.
-- 새 7개 공종은 원본 공종 필드를 대체하지 않는 별도 표시 분류입니다.
+- ChatGPT에서 검사한 `forena-as-app-v2.2-github.zip`의 데이터 자동 검사 7개 **통과**.
+- ZIP 내부 기본 제품은 **41개**, 표시 대상은 **66형 40개 · 68형 40개 · 84형 41개**.
+- 평형이 명시되지 않은 제품은 3개 타입 전부에 표시하며, 원본 필드는 변경하지 않았음.
+- 7개 신규 공종은 제품 원본의 `category` 필드를 수정하지 않는 표시 분류.
+- GitHub 검토 브랜치에 `docs/original-items.json`, `docs/classificationMap.json` 및 **검토 전용 CI**를 등록.
+- **개선본 전체 소스는 아직 이 브랜치에 업로드되지 않았음**. 따라서 현재 CI 실행 실패는 `tests/catalog.test.mjs` 부재에 따른 것으로, 개선본 빌드 실패를 의미하지 않습니다.
 
-## 안전한 배포 전 체크
-1. 기존 Firestore `as-app/items`, `as-app-images` 데이터를 보존 또는 백업.
-2. `firestore.rules`의 새 규칙을 Firebase Console에 적용. **기존 광범위한 `allow read, write: if true` 규칙을 반드시 제거/제한**.
-3. Firebase Authentication 이메일/비밀번호를 활성화하고, 승인 관리자의 `as-app-admins/{uid}` 문서에 `active: true` 설정.
-4. Actions repository secrets에 `VITE_FIREBASE_*` 6개 값을 입력. 웹 구성값은 앱 JS 번들에 포함되므로 비밀번호나 비밀키를 넣지 않기.
-5. GitHub Actions의 `node --test` 및 `npm run build` 결과가 모두 성공하는지 확인.
-6. 읽기·쓰기 권한, 사진, 백업/복원, 66·68·84형 목록, PC·모바일 실사용 검증 후 `main` 병합.
+## 개선본 소스 업로드 절차
 
-※ 로컬 준비 환경에서는 npm 패키지 저장소 DNS 연결이 불가능하여 실제 Vite 빌드/Firestore 실동작을 검증하지 못했습니다.
+1. 제공받은 `forena-as-app-v2.2-github.zip`을 PC에 다운로드하고 압축 해제.
+2. GitHub의 `liveref/forena-as-app` 저장소에서 `forena-v2-review` 브랜치를 선택.
+3. **ZIP 자체가 아니라 압축 해제된 내부 모든 파일과 폴더**를 올려 기존 대응 파일을 교체. 
+4. `.env.local`, 관리자 비밀번호, Firebase 서비스 계정 비밀키는 절대 업로드하지 않기.
+5. 업로드가 끝나면 **Actions → Verify candidate build** 실행 결과에서 데이터 테스트 및 React 빌드 성공 확인.
+6. 성공해도 **운영 Firestore 보안 규칙 확인과 데이터 백업 전에는 main으로 병합하지 않기**.
+
+## 운영 전 필수 점검
+
+- 기존 Firestore `as-app/items`, `as-app-images` 데이터 및 사진 백업.
+- `firestore.rules` 적용 및 기존 `allow read, write: if true` 같은 공개 쓰기 규칙 제거.
+- Firebase Authentication Email/Password 활성화, 승인 관리자 UID의 `as-app-admins/{uid}` 문서 `active: true`.
+- GitHub Actions에 `VITE_FIREBASE_*` 구성값 6개를 설정하되, 비밀번호와 서비스 계정 키는 입력하지 않기.
+- 66·68·84형, 사진, 사용설명서, 저장 실패, 동시 수정, 초기화/복원, PC·모바일 실제 테스트.
+- 사진 단독 동시 교체는 아직 서로 다른 관리자 사이의 충돌 방지가 완전하지 않으며, 실제 Firebase 테스트가 필요함.
+
+## 검증 범위
+
+- **완료:** 데이터 검증(7개), 원본/신규 공종 정적 비교, 검토용 CI 등록, 분류 데이터 스테이징
+- **미완료:** 개선본 전체 GitHub 업로드, GitHub 개선본 빌드 통과, Firebase 인증·보안 규칙 적용, 운영 데이터 백업, Pages 공개 배포
